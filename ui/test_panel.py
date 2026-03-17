@@ -1,14 +1,19 @@
-from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QGridLayout, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QHBoxLayout
+from PySide6.QtCore import Signal
 from config.settings import MODEL_GPT, MODEL_LLAMA
 from ai.ai_manager import generate_questions
 
 class TestPanel(QWidget):
+    pregunta_cambiada = Signal(int, int)
     
     def __init__(self):
         super().__init__()
         
         self.modelo_seleccionado = None
         self.texto_pdf = ""
+        self.pregunta_actual = 0
+        self.total_preguntas = 5
+        self.lista_preguntas = []
         
         layout_main = QVBoxLayout()
         layout_header = QHBoxLayout()
@@ -75,8 +80,36 @@ class TestPanel(QWidget):
 
         try:
             preguntas = generate_questions(self.texto_pdf, self.modelo_seleccionado)
-            self.test_view.setText(preguntas)
+            self.lista_preguntas = self.parsear_preguntas(preguntas)
+            self.pregunta_actual = 1
+            self.mostrar_pregunta_actual()
+            self.pregunta_cambiada.emit(self.pregunta_actual, self.total_preguntas)
         except Exception as error:
             self.test_view.setText(f"Error al generar preguntas: {error}")
+
+    def parsear_preguntas(self, preguntas_texto):
+        preguntas = [linea.strip() for linea in preguntas_texto.splitlines() if linea.strip()]
+        return preguntas[:self.total_preguntas]
+
+    def mostrar_pregunta_actual(self):
+        if self.pregunta_actual == 0:
+            self.test_view.setText("Aún no hay preguntas generadas.")
+            return
+
+        indice = self.pregunta_actual - 1
+        if 0 <= indice < len(self.lista_preguntas):
+            self.test_view.setText(self.lista_preguntas[indice])
+        else:
+            self.test_view.setText("No hay más preguntas disponibles.")
+
+    def siguiente_pregunta(self):
+        if self.pregunta_actual == 0:
+            return
+
+        if self.pregunta_actual < self.total_preguntas:
+            self.pregunta_actual += 1
+
+        self.mostrar_pregunta_actual()
+        self.pregunta_cambiada.emit(self.pregunta_actual, self.total_preguntas)
         
         
