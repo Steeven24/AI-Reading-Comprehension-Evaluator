@@ -60,3 +60,14 @@ def loadPagePrevious(self):
     if self.doc and self.pagina_actual > 0:
         self.pagina_actual -= 1
         renderCurrentPage(self)
+        
+def load_pdf(path):
+    return fitz.open(path)
+
+
+def extract_text(doc, limit=3000):
+    texto = ""
+    for pagina in doc:
+        texto += pagina.get_text()
+
+    return texto[:limit]
