@@ -15,6 +15,7 @@ class MainWindow(QMainWindow):
         
         panel_pdf = PdfPanel()
         panel_test = TestPanel()
+        panel_pdf.texto_extraido.connect(panel_test.set_texto_pdf)
         
         splitter.addWidget(panel_pdf)
         splitter.addWidget(panel_test)
