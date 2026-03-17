@@ -1,7 +1,9 @@
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QGridLayout
-from pdf.open_pdf import openPdf, getPage, loadPageNext, loadPagePrevious
+from PySide6.QtCore import Signal
+from pdf.open_pdf import openPdf, getPage, loadPageNext, loadPagePrevious, extract_text
 
 class PdfPanel(QWidget):
+    texto_extraido = Signal(str)
     
     def __init__(self):
         super().__init__()
@@ -56,7 +58,10 @@ class PdfPanel(QWidget):
 
     def handleUploadPdf(self):
         archivo = openPdf(self)
-        getPage(self,archivo)
+        getPage(self, archivo)
+        if self.doc:
+            texto = extract_text(self.doc)
+            self.texto_extraido.emit(texto)
         self.updatePageLabel()
 
     def updatePageLabel(self):
