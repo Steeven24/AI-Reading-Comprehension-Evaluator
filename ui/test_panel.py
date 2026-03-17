@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QHBoxLayout, QButtonGroup, QRadioButton
 from PySide6.QtCore import Signal
+import re
 from config.settings import MODEL_GPT, MODEL_LLAMA
 from ai.ai_manager import generate_questions
 
@@ -102,8 +103,44 @@ class TestPanel(QWidget):
             self.test_view.setText(f"Error al generar preguntas: {error}")
 
     def parsear_preguntas(self, preguntas_texto):
-        preguntas = [linea.strip() for linea in preguntas_texto.splitlines() if linea.strip()]
-        return preguntas[:self.total_preguntas]
+        preguntas_parseadas = []
+        pregunta_actual = None
+
+        for linea in preguntas_texto.splitlines():
+            texto = linea.strip()
+            if not texto:
+                continue
+
+            match_pregunta = re.match(r"^\d+[\)\.\-:]\s*(.+)$", texto)
+            if match_pregunta:
+                if pregunta_actual:
+                    preguntas_parseadas.append(pregunta_actual)
+                pregunta_actual = {
+                    "pregunta": match_pregunta.group(1).strip(),
+                    "opciones": []
+                }
+                continue
+
+            match_opcion = re.match(r"^([A-Da-d])[\)\.\-:]\s*(.+)$", texto)
+            if match_opcion and pregunta_actual:
+                pregunta_actual["opciones"].append(match_opcion.group(2).strip())
+                continue
+
+            if pregunta_actual:
+                if pregunta_actual["opciones"]:
+                    pregunta_actual["opciones"][-1] = f"{pregunta_actual['opciones'][-1]} {texto}"
+                else:
+                    pregunta_actual["pregunta"] = f"{pregunta_actual['pregunta']} {texto}"
+
+        if pregunta_actual:
+            preguntas_parseadas.append(pregunta_actual)
+
+        if not preguntas_parseadas:
+            lineas = [linea.strip() for linea in preguntas_texto.splitlines() if linea.strip()]
+            for linea in lineas[:self.total_preguntas]:
+                preguntas_parseadas.append({"pregunta": linea, "opciones": []})
+
+        return preguntas_parseadas[:self.total_preguntas]
 
     def mostrar_pregunta_actual(self):
         if self.pregunta_actual == 0:
@@ -113,10 +150,13 @@ class TestPanel(QWidget):
 
         indice = self.pregunta_actual - 1
         if 0 <= indice < len(self.lista_preguntas):
-            self.test_view.setText(self.lista_preguntas[indice])
+            pregunta_actual = self.lista_preguntas[indice]
+            self.test_view.setText(pregunta_actual.get("pregunta", ""))
+            self.actualizar_opciones(pregunta_actual.get("opciones", []))
             self.restaurar_seleccion_actual()
         else:
             self.test_view.setText("No hay más preguntas disponibles.")
+            self.actualizar_opciones([])
             self.limpiar_seleccion()
 
     def siguiente_pregunta(self):
@@ -149,5 +189,17 @@ class TestPanel(QWidget):
 
         if 0 <= opcion_guardada < len(self.radio_opciones):
             self.radio_opciones[opcion_guardada].setChecked(True)
+
+    def actualizar_opciones(self, opciones):
+        letras = ["A", "B", "C", "D"]
+        for indice, radio in enumerate(self.radio_opciones):
+            if indice < len(opciones):
+                radio.setText(f"{letras[indice]}) {opciones[indice]}")
+                radio.setEnabled(True)
+                radio.show()
+            else:
+                radio.setText(f"{letras[indice]})")
+                radio.setEnabled(False)
+                radio.show()
         
         
