@@ -22,7 +22,7 @@ class MainWindow(QMainWindow):
         self.panel_test.pregunta_cambiada.connect(self.actualizar_label_pregunta)
         self.button_next.clicked.connect(self.panel_test.siguiente_pregunta)
 
-        label_numtest = QLabel("Pregunta 0 / 5")
+        label_numtest = QLabel("Pregunta 0 / 0")
         self.label_numtest = label_numtest
 
         layout_bottom = QHBoxLayout()

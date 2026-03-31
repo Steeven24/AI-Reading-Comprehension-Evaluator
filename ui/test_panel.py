@@ -4,6 +4,7 @@ import re
 from config.settings import MODEL_GPT, MODEL_LLAMA
 from ai.ai_manager import generate_questions
 
+
 class TestPanel(QWidget):
     pregunta_cambiada = Signal(int, int)
     
@@ -13,7 +14,8 @@ class TestPanel(QWidget):
         self.modelo_seleccionado = None
         self.texto_pdf = ""
         self.pregunta_actual = 0
-        self.total_preguntas = 5
+        self.total_preguntas = 0
+        self.max_preguntas = 5
         self.lista_preguntas = []
         self.respuestas_usuario = {}
         
@@ -21,7 +23,7 @@ class TestPanel(QWidget):
         layout_header = QHBoxLayout()
         
         self.button_gpt = QPushButton("Gpt")
-        self.button_llama = QPushButton("llama")
+        self.button_llama = QPushButton("Llama")
         self.button_Gemini = QPushButton("Gemini")
         self.button_test = QPushButton("Iniciar Test")
         
@@ -69,16 +71,20 @@ class TestPanel(QWidget):
         #conexiones
         self.button_gpt.clicked.connect(lambda: self.set_modelo(MODEL_GPT))
         self.button_llama.clicked.connect(lambda: self.set_modelo(MODEL_LLAMA))
+        self.button_Gemini.clicked.connect(self.mostrar_modelo_no_disponible)
         self.button_test.clicked.connect(self.iniciar_test)
         self.answer_group.idClicked.connect(self.guardar_respuesta_actual)
     
-    def seleccionar_modelo(self, modelo):
-        self.modelo_seleccionado = modelo
-        
-        print(f"Modelo seleccionado: {modelo}")
-
     def set_modelo(self, modelo):
-        self.seleccionar_modelo(modelo)
+        if not modelo:
+            self.test_feedback.setText("Ese modelo no está configurado en variables de entorno.")
+            return
+
+        self.modelo_seleccionado = modelo
+        self.test_feedback.setText(f"Modelo seleccionado: {modelo}")
+
+    def mostrar_modelo_no_disponible(self):
+        self.test_feedback.setText("Gemini aún no está integrado.")
 
     def set_texto_pdf(self, texto):
         self.texto_pdf = texto
@@ -95,6 +101,14 @@ class TestPanel(QWidget):
         try:
             preguntas = generate_questions(self.texto_pdf, self.modelo_seleccionado)
             self.lista_preguntas = self.parsear_preguntas(preguntas)
+            self.total_preguntas = len(self.lista_preguntas)
+
+            if self.total_preguntas == 0:
+                self.test_view.setText("No se pudieron generar preguntas válidas.")
+                self.pregunta_actual = 0
+                self.pregunta_cambiada.emit(0, 0)
+                return
+
             self.respuestas_usuario = {}
             self.pregunta_actual = 1
             self.mostrar_pregunta_actual()
@@ -137,10 +151,10 @@ class TestPanel(QWidget):
 
         if not preguntas_parseadas:
             lineas = [linea.strip() for linea in preguntas_texto.splitlines() if linea.strip()]
-            for linea in lineas[:self.total_preguntas]:
+            for linea in lineas[:self.max_preguntas]:
                 preguntas_parseadas.append({"pregunta": linea, "opciones": []})
 
-        return preguntas_parseadas[:self.total_preguntas]
+        return preguntas_parseadas[:self.max_preguntas]
 
     def mostrar_pregunta_actual(self):
         if self.pregunta_actual == 0:
