@@ -1,0 +1,17 @@
+[
+  {
+    "id": "historia_ecuador",
+    "title": "Resumen historico del Ecuador",
+    "text": "La historia del Ecuador en el siglo XIX estuvo marcada por conflictos territoriales, cambios de gobierno y un proceso gradual de construccion del Estado. Durante este periodo se consolidaron instituciones republicanas, aunque persistieron tensiones entre regiones."
+  },
+  {
+    "id": "biologia_fotosintesis",
+    "title": "Proceso de fotosintesis",
+    "text": "La fotosintesis es el proceso mediante el cual las plantas convierten la energia solar en energia quimica. Para lograrlo utilizan agua, dioxido de carbono y clorofila. Como resultado producen glucosa y liberan oxigeno."
+  },
+  {
+    "id": "economia_inflacion",
+    "title": "Conceptos de inflacion",
+    "text": "La inflacion es el aumento sostenido de los precios de bienes y servicios en una economia. Cuando la inflacion sube, el poder adquisitivo del dinero disminuye. Los bancos centrales suelen usar tasas de interes para intentar controlar este fenomeno."
+  }
+]
