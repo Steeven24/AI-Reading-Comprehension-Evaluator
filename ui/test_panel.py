@@ -5,6 +5,47 @@ from config.settings import MODEL_GPT, MODEL_LLAMA
 from ai.ai_manager import generate_questions
 
 
+def parse_questions_text(preguntas_texto, max_preguntas=5):
+    preguntas_parseadas = []
+    pregunta_actual = None
+
+    for linea in preguntas_texto.splitlines():
+        texto = linea.strip()
+        if not texto:
+            continue
+
+        match_pregunta = re.match(r"^\d+[\)\.\-:]\s*(.+)$", texto)
+        if match_pregunta:
+            if pregunta_actual:
+                preguntas_parseadas.append(pregunta_actual)
+            pregunta_actual = {
+                "pregunta": match_pregunta.group(1).strip(),
+                "opciones": []
+            }
+            continue
+
+        match_opcion = re.match(r"^([A-Da-d])[\)\.\-:]\s*(.+)$", texto)
+        if match_opcion and pregunta_actual:
+            pregunta_actual["opciones"].append(match_opcion.group(2).strip())
+            continue
+
+        if pregunta_actual:
+            if pregunta_actual["opciones"]:
+                pregunta_actual["opciones"][-1] = f"{pregunta_actual['opciones'][-1]} {texto}"
+            else:
+                pregunta_actual["pregunta"] = f"{pregunta_actual['pregunta']} {texto}"
+
+    if pregunta_actual:
+        preguntas_parseadas.append(pregunta_actual)
+
+    if not preguntas_parseadas:
+        lineas = [linea.strip() for linea in preguntas_texto.splitlines() if linea.strip()]
+        for linea in lineas[:max_preguntas]:
+            preguntas_parseadas.append({"pregunta": linea, "opciones": []})
+
+    return preguntas_parseadas[:max_preguntas]
+
+
 class TestPanel(QWidget):
     pregunta_cambiada = Signal(int, int)
     
@@ -117,44 +158,7 @@ class TestPanel(QWidget):
             self.test_view.setText(f"Error al generar preguntas: {error}")
 
     def parsear_preguntas(self, preguntas_texto):
-        preguntas_parseadas = []
-        pregunta_actual = None
-
-        for linea in preguntas_texto.splitlines():
-            texto = linea.strip()
-            if not texto:
-                continue
-
-            match_pregunta = re.match(r"^\d+[\)\.\-:]\s*(.+)$", texto)
-            if match_pregunta:
-                if pregunta_actual:
-                    preguntas_parseadas.append(pregunta_actual)
-                pregunta_actual = {
-                    "pregunta": match_pregunta.group(1).strip(),
-                    "opciones": []
-                }
-                continue
-
-            match_opcion = re.match(r"^([A-Da-d])[\)\.\-:]\s*(.+)$", texto)
-            if match_opcion and pregunta_actual:
-                pregunta_actual["opciones"].append(match_opcion.group(2).strip())
-                continue
-
-            if pregunta_actual:
-                if pregunta_actual["opciones"]:
-                    pregunta_actual["opciones"][-1] = f"{pregunta_actual['opciones'][-1]} {texto}"
-                else:
-                    pregunta_actual["pregunta"] = f"{pregunta_actual['pregunta']} {texto}"
-
-        if pregunta_actual:
-            preguntas_parseadas.append(pregunta_actual)
-
-        if not preguntas_parseadas:
-            lineas = [linea.strip() for linea in preguntas_texto.splitlines() if linea.strip()]
-            for linea in lineas[:self.max_preguntas]:
-                preguntas_parseadas.append({"pregunta": linea, "opciones": []})
-
-        return preguntas_parseadas[:self.max_preguntas]
+        return parse_questions_text(preguntas_texto, max_preguntas=self.max_preguntas)
 
     def mostrar_pregunta_actual(self):
         if self.pregunta_actual == 0:
