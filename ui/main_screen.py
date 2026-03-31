@@ -12,6 +12,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 1080, 720)
 
         self.button_next = QPushButton("Siguiente pregunta")
+        self.button_next.setEnabled(False)
 
         splitter = QSplitter(Qt.Horizontal)
 
@@ -43,6 +44,7 @@ class MainWindow(QMainWindow):
 
     def actualizar_label_pregunta(self, pregunta_actual, total_preguntas):
         self.label_numtest.setText(f"Pregunta {pregunta_actual} / {total_preguntas}")
+        self.button_next.setEnabled(total_preguntas > 0 and pregunta_actual < total_preguntas)
         
         
         
