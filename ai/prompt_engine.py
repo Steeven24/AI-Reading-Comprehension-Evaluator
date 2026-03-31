@@ -31,14 +31,35 @@ def build_questions_prompt(texto: str) -> str:
     ).strip()
 
 
-def build_feedback_prompt(pregunta: str, respuesta_usuario: str) -> str:
+def build_question_feedback_prompt(pregunta: str, respuesta_usuario: str) -> str:
     return dedent(
         f"""
-        Evalúa la siguiente respuesta:
+        Actua como tutor de comprension lectora.
 
+        Evalua una sola respuesta del estudiante para esta pregunta:
         Pregunta: {pregunta}
-        Respuesta del estudiante: {respuesta_usuario}
+        Respuesta seleccionada: {respuesta_usuario}
 
-        Proporciona retroalimentación breve y clara.
+        Entrega una retroalimentacion breve y accionable (2 a 4 lineas):
+        - Que estuvo bien
+        - Que mejorar
+        - Una recomendacion concreta
+        """
+    ).strip()
+
+
+def build_test_summary_feedback_prompt(preguntas_y_respuestas: str) -> str:
+    return dedent(
+        f"""
+        Actua como docente y genera una retroalimentacion FINAL del test de comprension lectora.
+
+        Respuestas del estudiante por pregunta:
+        {preguntas_y_respuestas}
+
+        Requisitos:
+        - No repitas ni resuelvas una sola pregunta de forma aislada.
+        - Entrega una vision global del desempeno.
+        - Incluye fortalezas, debilidades y recomendaciones de estudio.
+        - Maximo 8 lineas.
         """
     ).strip()

@@ -3,7 +3,11 @@ from PySide6.QtCore import Signal
 from PySide6.QtGui import QTextOption
 import re
 from config.settings import MODEL_GEMINI, MODEL_GPT, MODEL_LLAMA
-from ai.ai_manager import generate_feedback, generate_questions
+from ai.ai_manager import (
+    generate_question_feedback,
+    generate_questions,
+    generate_test_feedback,
+)
 
 
 def parse_questions_text(preguntas_texto, max_preguntas=5):
@@ -225,7 +229,11 @@ class TestPanel(QWidget):
 
         self._set_feedback_text("Generando retroalimentación...")
         try:
-            feedback = generate_feedback(resumen, self.modelo_seleccionado)
+            feedback = generate_question_feedback(
+                pregunta.get("pregunta", ""),
+                respuesta,
+                self.modelo_seleccionado,
+            )
             self._set_feedback_text(feedback)
         except Exception as error:
             self._set_feedback_text(f"Error al generar retroalimentación: {error}")
@@ -288,7 +296,7 @@ class TestPanel(QWidget):
         resumen = "\n".join(resumen_lineas).strip()
 
         try:
-            feedback = generate_feedback(resumen, self.modelo_seleccionado)
+            feedback = generate_test_feedback(resumen, self.modelo_seleccionado)
             self._set_feedback_text(feedback)
         except Exception as error:
             self._set_feedback_text(f"Error al generar retroalimentación: {error}")

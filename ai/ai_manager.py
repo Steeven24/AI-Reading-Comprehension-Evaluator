@@ -1,6 +1,10 @@
 from groq import Groq
 from config.settings import GEMINI_API_KEY, GROQ_API_KEY
-from .prompt_engine import build_questions_prompt, build_feedback_prompt
+from .prompt_engine import (
+    build_question_feedback_prompt,
+    build_questions_prompt,
+    build_test_summary_feedback_prompt,
+)
 
 try:
     from google import genai
@@ -61,18 +65,9 @@ def generate_questions(texto: str, modelo: str) -> str:
     return contenido
 
 
-def generate_feedback(preguntas_y_respuestas: str, modelo: str) -> str:
+def _generate_from_prompt(prompt: str, modelo: str, temperature: float, max_tokens: int) -> str:
     if not modelo:
         raise ValueError("No se recibió un modelo válido para generar retroalimentación.")
-
-    contenido = (preguntas_y_respuestas or "").strip()
-    if not contenido:
-        raise ValueError("No hay respuestas para generar retroalimentación.")
-
-    prompt = build_feedback_prompt(
-        "Resumen del test de comprensión lectora",
-        contenido,
-    )
 
     if _is_gemini_model(modelo):
         return _generate_with_gemini(prompt, modelo)
@@ -85,8 +80,8 @@ def generate_feedback(preguntas_y_respuestas: str, modelo: str) -> str:
     completion = client.chat.completions.create(
         model=modelo,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.4,
-        max_completion_tokens=300,
+        temperature=temperature,
+        max_completion_tokens=max_tokens,
     )
 
     feedback = completion.choices[0].message.content
@@ -94,3 +89,27 @@ def generate_feedback(preguntas_y_respuestas: str, modelo: str) -> str:
         raise RuntimeError("El modelo devolvió una retroalimentación vacía.")
 
     return feedback
+
+
+def generate_question_feedback(pregunta: str, respuesta_usuario: str, modelo: str) -> str:
+    pregunta_limpia = (pregunta or "").strip()
+    respuesta_limpia = (respuesta_usuario or "").strip()
+    if not pregunta_limpia or not respuesta_limpia:
+        raise ValueError("Pregunta y respuesta son obligatorias para generar retroalimentación.")
+
+    prompt = build_question_feedback_prompt(pregunta_limpia, respuesta_limpia)
+    return _generate_from_prompt(prompt, modelo, temperature=0.3, max_tokens=240)
+
+
+def generate_test_feedback(preguntas_y_respuestas: str, modelo: str) -> str:
+    contenido = (preguntas_y_respuestas or "").strip()
+    if not contenido:
+        raise ValueError("No hay respuestas para generar retroalimentación final.")
+
+    prompt = build_test_summary_feedback_prompt(contenido)
+    return _generate_from_prompt(prompt, modelo, temperature=0.35, max_tokens=420)
+
+
+def generate_feedback(preguntas_y_respuestas: str, modelo: str) -> str:
+    """Compatibilidad retroactiva: mantiene la firma previa para feedback final."""
+    return generate_test_feedback(preguntas_y_respuestas, modelo)
