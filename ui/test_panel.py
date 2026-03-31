@@ -66,28 +66,35 @@ class TestPanel(QWidget):
         self.respuestas_usuario = {}
         
         layout_main = QVBoxLayout()
+        layout_main.setContentsMargins(8, 8, 8, 8)
+        layout_main.setSpacing(8)
         layout_header = QHBoxLayout()
+        layout_header.setSpacing(8)
         
         self.button_gpt = QPushButton("Gpt")
         self.button_llama = QPushButton("Llama")
         self.button_Gemini = QPushButton("Gemini")
         self.button_test = QPushButton("Iniciar Test")
+
+        for button in (self.button_gpt, self.button_llama, self.button_Gemini):
+            button.setCheckable(True)
+            button.setMinimumHeight(36)
         
         
-        self.button_test.setFixedSize(100,40)
+        self.button_test.setMinimumHeight(38)
         
         layout_main.addLayout(layout_header)
         layout_header.addWidget(self.button_gpt)
         layout_header.addWidget(self.button_llama)
         layout_header.addWidget(self.button_Gemini)
+        layout_header.addStretch()
         layout_main.addWidget(self.button_test)
         
         label_test = QLabel("Preguntas de Comprension")
-        label_test.setFixedSize(200,30)
+        label_test.setObjectName("SectionTitle")
         
         self.test_view = QTextEdit()
         self.test_view.setMinimumSize(400,100)
-        self.test_view.setStyleSheet("border: 1px solid black;")
         self.test_view.setReadOnly(True)
         self.test_view.setLineWrapMode(QTextEdit.WidgetWidth)
         self.test_view.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
@@ -102,11 +109,10 @@ class TestPanel(QWidget):
             self.radio_opciones.append(radio)
         
         label_feedback = QLabel("Retroalimentacion")
-        label_feedback.setFixedSize(200,30)
+        label_feedback.setObjectName("SectionTitle")
         
         self.test_feedback = QTextEdit()
         self.test_feedback.setMinimumSize(400,50)
-        self.test_feedback.setStyleSheet("border: 1px solid black;")
         self.test_feedback.setReadOnly(True)
         self.test_feedback.setLineWrapMode(QTextEdit.WidgetWidth)
         self.test_feedback.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
@@ -133,6 +139,9 @@ class TestPanel(QWidget):
             return
 
         self.modelo_seleccionado = modelo
+        self.button_gpt.setChecked(modelo == MODEL_GPT)
+        self.button_llama.setChecked(modelo == MODEL_LLAMA)
+        self.button_Gemini.setChecked(modelo == MODEL_GEMINI)
         self._set_feedback_text(f"Modelo seleccionado: {modelo}")
 
     def set_texto_pdf(self, texto):
