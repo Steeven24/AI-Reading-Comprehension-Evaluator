@@ -1,6 +1,6 @@
 from groq import Groq
 from config.settings import GROQ_API_KEY
-from .prompt_engine import build_questions_prompt
+from .prompt_engine import build_questions_prompt, build_feedback_prompt
 
 def generate_questions(texto: str, modelo: str) -> str:
     if not GROQ_API_KEY:
@@ -30,3 +30,34 @@ def generate_questions(texto: str, modelo: str) -> str:
         raise RuntimeError("El modelo devolvió una respuesta vacía.")
 
     return contenido
+
+
+def generate_feedback(preguntas_y_respuestas: str, modelo: str) -> str:
+    if not GROQ_API_KEY:
+        raise ValueError("Falta GROQ_API_KEY. Configúrala como variable de entorno.")
+    if not modelo:
+        raise ValueError("No se recibió un modelo válido para generar retroalimentación.")
+
+    contenido = (preguntas_y_respuestas or "").strip()
+    if not contenido:
+        raise ValueError("No hay respuestas para generar retroalimentación.")
+
+    client = Groq(api_key=GROQ_API_KEY)
+
+    prompt = build_feedback_prompt(
+        "Resumen del test de comprensión lectora",
+        contenido,
+    )
+
+    completion = client.chat.completions.create(
+        model=modelo,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.4,
+        max_completion_tokens=300,
+    )
+
+    feedback = completion.choices[0].message.content
+    if not feedback:
+        raise RuntimeError("El modelo devolvió una retroalimentación vacía.")
+
+    return feedback

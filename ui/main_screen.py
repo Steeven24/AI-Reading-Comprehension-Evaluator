@@ -13,6 +13,8 @@ class MainWindow(QMainWindow):
 
         self.button_next = QPushButton("Siguiente pregunta")
         self.button_next.setEnabled(False)
+        self.button_finish = QPushButton("Finalizar test")
+        self.button_finish.setEnabled(False)
 
         splitter = QSplitter(Qt.Horizontal)
 
@@ -22,6 +24,7 @@ class MainWindow(QMainWindow):
 
         self.panel_test.pregunta_cambiada.connect(self.actualizar_label_pregunta)
         self.button_next.clicked.connect(self.panel_test.siguiente_pregunta)
+        self.button_finish.clicked.connect(self.panel_test.finalizar_test)
 
         label_numtest = QLabel("Pregunta 0 / 0")
         self.label_numtest = label_numtest
@@ -30,6 +33,7 @@ class MainWindow(QMainWindow):
         layout_bottom.addWidget(self.label_numtest)
         layout_bottom.addStretch()
         layout_bottom.addWidget(self.button_next)
+        layout_bottom.addWidget(self.button_finish)
 
         contenedor = QWidget()
         layout_main = QVBoxLayout(contenedor)
@@ -45,6 +49,7 @@ class MainWindow(QMainWindow):
     def actualizar_label_pregunta(self, pregunta_actual, total_preguntas):
         self.label_numtest.setText(f"Pregunta {pregunta_actual} / {total_preguntas}")
         self.button_next.setEnabled(total_preguntas > 0 and pregunta_actual < total_preguntas)
+        self.button_finish.setEnabled(total_preguntas > 0)
         
         
         

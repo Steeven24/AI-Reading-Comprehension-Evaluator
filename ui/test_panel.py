@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QHBoxLa
 from PySide6.QtCore import Signal
 import re
 from config.settings import MODEL_GPT, MODEL_LLAMA
-from ai.ai_manager import generate_questions
+from ai.ai_manager import generate_feedback, generate_questions
 
 
 def parse_questions_text(preguntas_texto, max_preguntas=5):
@@ -83,6 +83,7 @@ class TestPanel(QWidget):
         self.test_view = QLabel()
         self.test_view.setMinimumSize(400,100)
         self.test_view.setStyleSheet("border: 1px solid black;")
+        self.test_view.setWordWrap(True)
 
         self.answer_group = QButtonGroup(self)
         self.answer_group.setExclusive(True)
@@ -99,6 +100,7 @@ class TestPanel(QWidget):
         self.test_feedback = QLabel()
         self.test_feedback.setMinimumSize(400,50)
         self.test_feedback.setStyleSheet("border: 1px solid black;")
+        self.test_feedback.setWordWrap(True)
         
         layout_main.addWidget(label_test)
         layout_main.addWidget(self.test_view)
@@ -219,5 +221,41 @@ class TestPanel(QWidget):
                 radio.setText(f"{letras[indice]})")
                 radio.setEnabled(False)
                 radio.show()
+
+    def finalizar_test(self):
+        if self.total_preguntas == 0 or not self.lista_preguntas:
+            self.test_feedback.setText("Primero inicia un test para poder finalizarlo.")
+            return
+
+        if not self.modelo_seleccionado:
+            self.test_feedback.setText("Selecciona un modelo para generar retroalimentación.")
+            return
+
+        resumen_lineas = []
+        letras = ["A", "B", "C", "D"]
+
+        for indice, pregunta in enumerate(self.lista_preguntas, start=1):
+            texto_pregunta = pregunta.get("pregunta", "").strip()
+            opcion_id = self.respuestas_usuario.get(indice)
+            if opcion_id is None:
+                respuesta = "Sin responder"
+            else:
+                opciones = pregunta.get("opciones", [])
+                if 0 <= opcion_id < len(opciones):
+                    respuesta = f"{letras[opcion_id]}) {opciones[opcion_id]}"
+                else:
+                    respuesta = "Respuesta inválida"
+
+            resumen_lineas.append(f"Pregunta {indice}: {texto_pregunta}")
+            resumen_lineas.append(f"Respuesta: {respuesta}")
+            resumen_lineas.append("")
+
+        resumen = "\n".join(resumen_lineas).strip()
+
+        try:
+            feedback = generate_feedback(resumen, self.modelo_seleccionado)
+            self.test_feedback.setText(feedback)
+        except Exception as error:
+            self.test_feedback.setText(f"Error al generar retroalimentación: {error}")
         
         
