@@ -1,5 +1,6 @@
-from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QHBoxLayout, QButtonGroup, QRadioButton
+from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QHBoxLayout, QButtonGroup, QRadioButton, QTextEdit
 from PySide6.QtCore import Signal
+from PySide6.QtGui import QTextOption
 import re
 from config.settings import MODEL_GPT, MODEL_LLAMA
 from ai.ai_manager import generate_feedback, generate_questions
@@ -80,10 +81,12 @@ class TestPanel(QWidget):
         label_test = QLabel("Preguntas de Comprension")
         label_test.setFixedSize(200,30)
         
-        self.test_view = QLabel()
+        self.test_view = QTextEdit()
         self.test_view.setMinimumSize(400,100)
         self.test_view.setStyleSheet("border: 1px solid black;")
-        self.test_view.setWordWrap(True)
+        self.test_view.setReadOnly(True)
+        self.test_view.setLineWrapMode(QTextEdit.WidgetWidth)
+        self.test_view.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
 
         self.answer_group = QButtonGroup(self)
         self.answer_group.setExclusive(True)
@@ -97,10 +100,12 @@ class TestPanel(QWidget):
         label_feedback = QLabel("Retroalimentacion")
         label_feedback.setFixedSize(200,30)
         
-        self.test_feedback = QLabel()
+        self.test_feedback = QTextEdit()
         self.test_feedback.setMinimumSize(400,50)
         self.test_feedback.setStyleSheet("border: 1px solid black;")
-        self.test_feedback.setWordWrap(True)
+        self.test_feedback.setReadOnly(True)
+        self.test_feedback.setLineWrapMode(QTextEdit.WidgetWidth)
+        self.test_feedback.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
         
         layout_main.addWidget(label_test)
         layout_main.addWidget(self.test_view)
@@ -120,25 +125,25 @@ class TestPanel(QWidget):
     
     def set_modelo(self, modelo):
         if not modelo:
-            self.test_feedback.setText("Ese modelo no está configurado en variables de entorno.")
+            self._set_feedback_text("Ese modelo no está configurado en variables de entorno.")
             return
 
         self.modelo_seleccionado = modelo
-        self.test_feedback.setText(f"Modelo seleccionado: {modelo}")
+        self._set_feedback_text(f"Modelo seleccionado: {modelo}")
 
     def mostrar_modelo_no_disponible(self):
-        self.test_feedback.setText("Gemini aún no está integrado.")
+        self._set_feedback_text("Gemini aún no está integrado.")
 
     def set_texto_pdf(self, texto):
         self.texto_pdf = texto
 
     def iniciar_test(self):
         if not self.texto_pdf.strip():
-            self.test_view.setText("Primero sube un PDF en el panel izquierdo.")
+            self.test_view.setPlainText("Primero sube un PDF en el panel izquierdo.")
             return
 
         if not self.modelo_seleccionado:
-            self.test_view.setText("Primero selecciona un modelo (GPT o Llama).")
+            self.test_view.setPlainText("Primero selecciona un modelo (GPT o Llama).")
             return
 
         try:
@@ -147,7 +152,7 @@ class TestPanel(QWidget):
             self.total_preguntas = len(self.lista_preguntas)
 
             if self.total_preguntas == 0:
-                self.test_view.setText("No se pudieron generar preguntas válidas.")
+                self.test_view.setPlainText("No se pudieron generar preguntas válidas.")
                 self.pregunta_actual = 0
                 self.pregunta_cambiada.emit(0, 0)
                 return
@@ -157,25 +162,25 @@ class TestPanel(QWidget):
             self.mostrar_pregunta_actual()
             self.pregunta_cambiada.emit(self.pregunta_actual, self.total_preguntas)
         except Exception as error:
-            self.test_view.setText(f"Error al generar preguntas: {error}")
+            self.test_view.setPlainText(f"Error al generar preguntas: {error}")
 
     def parsear_preguntas(self, preguntas_texto):
         return parse_questions_text(preguntas_texto, max_preguntas=self.max_preguntas)
 
     def mostrar_pregunta_actual(self):
         if self.pregunta_actual == 0:
-            self.test_view.setText("Aún no hay preguntas generadas.")
+            self.test_view.setPlainText("Aún no hay preguntas generadas.")
             self.limpiar_seleccion()
             return
 
         indice = self.pregunta_actual - 1
         if 0 <= indice < len(self.lista_preguntas):
             pregunta_actual = self.lista_preguntas[indice]
-            self.test_view.setText(pregunta_actual.get("pregunta", ""))
+            self.test_view.setPlainText(pregunta_actual.get("pregunta", ""))
             self.actualizar_opciones(pregunta_actual.get("opciones", []))
             self.restaurar_seleccion_actual()
         else:
-            self.test_view.setText("No hay más preguntas disponibles.")
+            self.test_view.setPlainText("No hay más preguntas disponibles.")
             self.actualizar_opciones([])
             self.limpiar_seleccion()
 
@@ -224,11 +229,11 @@ class TestPanel(QWidget):
 
     def finalizar_test(self):
         if self.total_preguntas == 0 or not self.lista_preguntas:
-            self.test_feedback.setText("Primero inicia un test para poder finalizarlo.")
+            self._set_feedback_text("Primero inicia un test para poder finalizarlo.")
             return
 
         if not self.modelo_seleccionado:
-            self.test_feedback.setText("Selecciona un modelo para generar retroalimentación.")
+            self._set_feedback_text("Selecciona un modelo para generar retroalimentación.")
             return
 
         resumen_lineas = []
@@ -254,8 +259,15 @@ class TestPanel(QWidget):
 
         try:
             feedback = generate_feedback(resumen, self.modelo_seleccionado)
-            self.test_feedback.setText(feedback)
+            self._set_feedback_text(feedback)
         except Exception as error:
-            self.test_feedback.setText(f"Error al generar retroalimentación: {error}")
+            self._set_feedback_text(f"Error al generar retroalimentación: {error}")
+
+    def _set_feedback_text(self, text):
+        contenido = (text or "").strip()
+        if "**" in contenido or "\n-" in contenido or "\n1." in contenido:
+            self.test_feedback.setMarkdown(contenido)
+        else:
+            self.test_feedback.setPlainText(contenido)
         
         
