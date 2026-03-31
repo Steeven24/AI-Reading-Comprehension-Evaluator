@@ -199,6 +199,39 @@ class TestPanel(QWidget):
             return
 
         self.respuestas_usuario[self.pregunta_actual] = opcion_id
+        self.generar_feedback_pregunta_actual(opcion_id)
+        self.pregunta_cambiada.emit(self.pregunta_actual, self.total_preguntas)
+
+    def generar_feedback_pregunta_actual(self, opcion_id):
+        if not self.modelo_seleccionado:
+            self._set_feedback_text("Selecciona un modelo para recibir retroalimentación en tiempo real.")
+            return
+
+        indice = self.pregunta_actual - 1
+        if indice < 0 or indice >= len(self.lista_preguntas):
+            return
+
+        pregunta = self.lista_preguntas[indice]
+        opciones = pregunta.get("opciones", [])
+        letras = ["A", "B", "C", "D"]
+
+        if 0 <= opcion_id < len(opciones):
+            respuesta = f"{letras[opcion_id]}) {opciones[opcion_id]}"
+        else:
+            respuesta = "Respuesta inválida"
+
+        resumen = (
+            f"Pregunta {self.pregunta_actual}: {pregunta.get('pregunta', '').strip()}\n"
+            f"Respuesta seleccionada: {respuesta}\n"
+            "Da una retroalimentación breve y concreta para esta respuesta."
+        )
+
+        self._set_feedback_text("Generando retroalimentación...")
+        try:
+            feedback = generate_feedback(resumen, self.modelo_seleccionado)
+            self._set_feedback_text(feedback)
+        except Exception as error:
+            self._set_feedback_text(f"Error al generar retroalimentación: {error}")
 
     def limpiar_seleccion(self):
         self.answer_group.setExclusive(False)

@@ -49,7 +49,9 @@ class MainWindow(QMainWindow):
     def actualizar_label_pregunta(self, pregunta_actual, total_preguntas):
         self.label_numtest.setText(f"Pregunta {pregunta_actual} / {total_preguntas}")
         self.button_next.setEnabled(total_preguntas > 0 and pregunta_actual < total_preguntas)
-        self.button_finish.setEnabled(total_preguntas > 0)
+        respuestas_completas = len(self.panel_test.respuestas_usuario) >= total_preguntas and total_preguntas > 0
+        en_ultima_pregunta = total_preguntas > 0 and pregunta_actual == total_preguntas
+        self.button_finish.setEnabled(en_ultima_pregunta and respuestas_completas)
         
         
         
