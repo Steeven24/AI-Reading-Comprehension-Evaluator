@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QHBoxLa
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QTextOption
 import re
-from config.settings import MODEL_GPT, MODEL_LLAMA
+from config.settings import MODEL_GEMINI, MODEL_GPT, MODEL_LLAMA
 from ai.ai_manager import generate_feedback, generate_questions
 
 
@@ -119,7 +119,7 @@ class TestPanel(QWidget):
         #conexiones
         self.button_gpt.clicked.connect(lambda: self.set_modelo(MODEL_GPT))
         self.button_llama.clicked.connect(lambda: self.set_modelo(MODEL_LLAMA))
-        self.button_Gemini.clicked.connect(self.mostrar_modelo_no_disponible)
+        self.button_Gemini.clicked.connect(lambda: self.set_modelo(MODEL_GEMINI))
         self.button_test.clicked.connect(self.iniciar_test)
         self.answer_group.idClicked.connect(self.guardar_respuesta_actual)
     
@@ -131,9 +131,6 @@ class TestPanel(QWidget):
         self.modelo_seleccionado = modelo
         self._set_feedback_text(f"Modelo seleccionado: {modelo}")
 
-    def mostrar_modelo_no_disponible(self):
-        self._set_feedback_text("Gemini aún no está integrado.")
-
     def set_texto_pdf(self, texto):
         self.texto_pdf = texto
 
@@ -143,7 +140,7 @@ class TestPanel(QWidget):
             return
 
         if not self.modelo_seleccionado:
-            self.test_view.setPlainText("Primero selecciona un modelo (GPT o Llama).")
+            self.test_view.setPlainText("Primero selecciona un modelo.")
             return
 
         try:
