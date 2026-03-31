@@ -15,8 +15,11 @@ class MainWindow(QMainWindow):
         self.button_next.setEnabled(False)
         self.button_finish = QPushButton("Finalizar test")
         self.button_finish.setEnabled(False)
+        self.button_next.setMinimumHeight(38)
+        self.button_finish.setMinimumHeight(38)
 
         splitter = QSplitter(Qt.Horizontal)
+        splitter.setHandleWidth(2)
 
         self.panel_pdf = PdfPanel()
         self.panel_test = TestPanel()
@@ -27,9 +30,12 @@ class MainWindow(QMainWindow):
         self.button_finish.clicked.connect(self.panel_test.finalizar_test)
 
         label_numtest = QLabel("Pregunta 0 / 0")
+        label_numtest.setObjectName("StatusLabel")
         self.label_numtest = label_numtest
 
         layout_bottom = QHBoxLayout()
+        layout_bottom.setContentsMargins(8, 2, 8, 8)
+        layout_bottom.setSpacing(10)
         layout_bottom.addWidget(self.label_numtest)
         layout_bottom.addStretch()
         layout_bottom.addWidget(self.button_next)
@@ -37,6 +43,8 @@ class MainWindow(QMainWindow):
 
         contenedor = QWidget()
         layout_main = QVBoxLayout(contenedor)
+        layout_main.setContentsMargins(10, 10, 10, 8)
+        layout_main.setSpacing(8)
 
         splitter.addWidget(self.panel_pdf)
         splitter.addWidget(self.panel_test)

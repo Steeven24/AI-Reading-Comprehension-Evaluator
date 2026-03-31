@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QGridLayout
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
 from pdf.open_pdf import open_pdf_dialog, load_document, load_page_next, load_page_previous, extract_text
 
 class PdfPanel(QWidget):
@@ -13,18 +13,27 @@ class PdfPanel(QWidget):
         self.archivo_actual = None
         
         layout = QVBoxLayout()
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(8)
         layout_grid = QGridLayout()
+        layout_grid.setContentsMargins(0, 0, 0, 0)
+        layout_grid.setHorizontalSpacing(8)
         
         self.button_upload = QPushButton("Subir PDF")
+        self.button_upload.setMinimumHeight(38)
         self.connect_upload_button()
         self.button_previous = QPushButton("Anterior")
         self.button_next = QPushButton("Siguiente")
+        self.button_previous.setMinimumHeight(34)
+        self.button_next.setMinimumHeight(34)
         
         self.pdf_view = QLabel()
+        self.pdf_view.setObjectName("PdfCanvas")
         self.pdf_view.setMinimumSize(400, 500)
-        self.pdf_view.setStyleSheet("border: 1px solid black;")
+        self.pdf_view.setAlignment(Qt.AlignCenter)
         
         self.label_pages = QLabel("Pagina 0 de 0")
+        self.label_pages.setObjectName("StatusLabel")
         self.label_pages.setStyleSheet("qproperty-alignment: 'AlignCenter';")
         
         layout.addWidget(self.button_upload)
