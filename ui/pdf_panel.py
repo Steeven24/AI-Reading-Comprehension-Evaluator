@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QGridLayout
 from PySide6.QtCore import Signal
-from pdf.open_pdf import openPdf, getPage, loadPageNext, loadPagePrevious, extract_text
+from pdf.open_pdf import open_pdf_dialog, load_document, load_page_next, load_page_previous, extract_text
 
 class PdfPanel(QWidget):
     texto_extraido = Signal(str)
@@ -15,8 +15,8 @@ class PdfPanel(QWidget):
         layout = QVBoxLayout()
         layout_grid = QGridLayout()
         
-        self.button_upload = QPushButton("Subir Pdf")
-        self.clickButton()
+        self.button_upload = QPushButton("Subir PDF")
+        self.connect_upload_button()
         self.button_previous = QPushButton("Anterior")
         self.button_next = QPushButton("Siguiente")
         
@@ -30,39 +30,52 @@ class PdfPanel(QWidget):
         layout.addWidget(self.button_upload)
         layout.addWidget(self.pdf_view)
         layout_grid.addWidget(self.button_next, 0,2)
-        self.clickNextPage()
+        self.connect_next_page_button()
         layout_grid.addWidget(self.button_previous, 0,0)
-        self.clickPreviousPage()
+        self.connect_previous_page_button()
         layout_grid.addWidget(self.label_pages, 0,1)
         layout.addLayout(layout_grid)
         
         self.setLayout(layout)
         self.updatePageLabel()
+        self.update_navigation_buttons()
     
-    def clickButton(self):
+    def connect_upload_button(self):
         self.button_upload.clicked.connect(self.handleUploadPdf)
 
-    def clickNextPage(self):
+    def connect_next_page_button(self):
         self.button_next.clicked.connect(self.handleNextPage)
     
-    def clickPreviousPage(self):
+    def connect_previous_page_button(self):
         self.button_previous.clicked.connect(self.handlePreviousPage)
 
     def handleNextPage(self):
-        loadPageNext(self)
+        load_page_next(self)
         self.updatePageLabel()
+        self.update_navigation_buttons()
     
     def handlePreviousPage(self):
-        loadPagePrevious(self)
+        load_page_previous(self)
         self.updatePageLabel()
+        self.update_navigation_buttons()
 
     def handleUploadPdf(self):
-        archivo = openPdf(self)
-        getPage(self, archivo)
+        archivo = open_pdf_dialog(self)
+        load_document(self, archivo)
         if self.doc:
             texto = extract_text(self.doc)
             self.texto_extraido.emit(texto)
         self.updatePageLabel()
+        self.update_navigation_buttons()
+
+    def update_navigation_buttons(self):
+        if not self.doc:
+            self.button_previous.setEnabled(False)
+            self.button_next.setEnabled(False)
+            return
+
+        self.button_previous.setEnabled(self.pagina_actual > 0)
+        self.button_next.setEnabled(self.pagina_actual < self.doc.page_count - 1)
 
     def updatePageLabel(self):
         if self.doc:

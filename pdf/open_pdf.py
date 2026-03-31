@@ -3,31 +3,32 @@ from PySide6.QtGui import QPixmap, QImage
 from PySide6.QtCore import Qt
 import fitz
 
-def openPdf(self):
-    archivo, _ = QFileDialog.getOpenFileName(self, "Selecciona un PDF", "", "PDF Files (*.pdf)")
-    
+def open_pdf_dialog(parent):
+    archivo, _ = QFileDialog.getOpenFileName(parent, "Selecciona un PDF", "", "PDF Files (*.pdf)")
     return archivo
 
-def getPage(self, archivo):
+
+def load_document(panel, archivo):
     if not archivo:
         return
 
-    if self.doc:
-        self.doc.close()
+    if panel.doc:
+        panel.doc.close()
 
-    self.doc = fitz.open(archivo)
-    self.archivo_actual = archivo
-    self.pagina_actual = 0
-    renderCurrentPage(self)
+    panel.doc = fitz.open(archivo)
+    panel.archivo_actual = archivo
+    panel.pagina_actual = 0
+    render_current_page(panel)
 
-def renderCurrentPage(self):
-    if not self.doc:
+
+def render_current_page(panel):
+    if not panel.doc:
         return
 
-    pagina = self.doc.load_page(self.pagina_actual)
+    pagina = panel.doc.load_page(panel.pagina_actual)
 
-    label_width = max(1, self.pdf_view.width())
-    label_height = max(1, self.pdf_view.height())
+    label_width = max(1, panel.pdf_view.width())
+    label_height = max(1, panel.pdf_view.height())
 
     page_rect = pagina.rect
     zoom = min(label_width / page_rect.width, label_height / page_rect.height)
@@ -49,17 +50,19 @@ def renderCurrentPage(self):
         Qt.KeepAspectRatio,
         Qt.SmoothTransformation
     )
-    self.pdf_view.setPixmap(pixmap)
+    panel.pdf_view.setPixmap(pixmap)
 
-def loadPageNext(self):
-    if self.doc and self.pagina_actual < self.doc.page_count - 1:
-        self.pagina_actual += 1
-        renderCurrentPage(self)
 
-def loadPagePrevious(self):
-    if self.doc and self.pagina_actual > 0:
-        self.pagina_actual -= 1
-        renderCurrentPage(self)
+def load_page_next(panel):
+    if panel.doc and panel.pagina_actual < panel.doc.page_count - 1:
+        panel.pagina_actual += 1
+        render_current_page(panel)
+
+
+def load_page_previous(panel):
+    if panel.doc and panel.pagina_actual > 0:
+        panel.pagina_actual -= 1
+        render_current_page(panel)
         
 def load_pdf(path):
     return fitz.open(path)
@@ -71,3 +74,24 @@ def extract_text(doc, limit=3000):
         texto += pagina.get_text()
 
     return texto[:limit]
+
+
+# Backward-compatible aliases for previous API names.
+def openPdf(parent):
+    return open_pdf_dialog(parent)
+
+
+def getPage(panel, archivo):
+    return load_document(panel, archivo)
+
+
+def renderCurrentPage(panel):
+    return render_current_page(panel)
+
+
+def loadPageNext(panel):
+    return load_page_next(panel)
+
+
+def loadPagePrevious(panel):
+    return load_page_previous(panel)
