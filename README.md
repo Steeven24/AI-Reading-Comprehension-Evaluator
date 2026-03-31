@@ -1,40 +1,40 @@
-# AI Benchmark - Test de Comprension Lectora con IA
+# AI Benchmark - Reading Comprehension Testing with AI
 
-Aplicacion de escritorio en PySide6 para generar pruebas de comprension lectora desde un PDF, responderlas con apoyo de IA y recibir retroalimentacion por pregunta y al final del test.
+A PySide6 desktop application that generates reading-comprehension tests from a PDF, lets users answer multiple-choice questions, and provides both per-question and end-of-test feedback.
 
-Incluye tambien un sistema de benchmarking offline para comparar modelos (GPT, Llama y Gemini) con metricas objetivas y graficas en matplotlib.
+The project also includes an offline benchmarking pipeline to compare models (GPT, Llama, and Gemini) using objective metrics and matplotlib charts.
 
-## Objetivos del proyecto
+## Project Objectives
 
-- Extraer texto desde un PDF y usarlo como contexto para un test de comprension.
-- Generar preguntas de opcion multiple con distintos modelos de IA.
-- Registrar respuestas del usuario y mostrar retroalimentacion en tiempo real.
-- Generar retroalimentacion final del desempeno del test.
-- Medir y comparar el rendimiento de modelos para seleccionar la mejor IA.
+- Extract text from PDFs and use it as context for comprehension testing.
+- Generate multiple-choice questions with different AI models.
+- Capture user answers and provide real-time feedback per question.
+- Produce a final global performance summary at the end of the test.
+- Measure and compare model performance to select the best AI option.
 
-## Funcionalidades principales
+## Core Features
 
-- Carga y visualizacion de PDF con navegacion por paginas.
-- Extraccion del texto del PDF para contexto de generacion.
-- Seleccion de modelo IA: GPT, Llama, Gemini.
-- Generacion automatica de 5 preguntas de opcion multiple.
-- Retroalimentacion por pregunta al seleccionar respuesta.
-- Retroalimentacion global al finalizar el test.
-- Benchmark offline con metricas y graficas.
+- PDF upload and viewing with page navigation.
+- PDF text extraction for prompt context.
+- AI model selection: GPT, Llama, Gemini.
+- Automatic generation of 5 multiple-choice questions.
+- Real-time feedback when a user selects an answer.
+- Final holistic feedback when the test is completed.
+- Offline model benchmark with metrics and charts.
 
-## Arquitectura del proyecto
+## Project Architecture
 
-La aplicacion esta organizada por modulos con responsabilidades separadas:
+The application is organized into focused modules:
 
-- `main.py`: punto de entrada de la app PySide6.
-- `ui/`: interfaz grafica (ventana principal, panel PDF, panel test).
-- `pdf/`: utilidades de apertura, render y extraccion de texto desde PDF.
-- `ai/`: construccion de prompts e integracion con proveedores de IA.
-- `config/`: lectura de variables de entorno y configuracion de modelos.
-- `metrics/`: benchmark de modelos y generacion de reportes/graficas.
-- `test/`: pruebas unitarias de parser y prompts.
+- `main.py`: PySide6 application entry point.
+- `ui/`: graphical interface (main window, PDF panel, test panel).
+- `pdf/`: PDF opening, rendering, and text extraction utilities.
+- `ai/`: prompt construction and AI provider integrations.
+- `config/`: environment-variable loading and model configuration.
+- `metrics/`: model benchmarking and report/chart generation.
+- `test/`: unit tests for prompt and parsing logic.
 
-## Estructura de carpetas
+## Folder Structure
 
 ```text
 AI-benchmark/
@@ -58,11 +58,11 @@ AI-benchmark/
     test_panel.py
 ```
 
-## Requisitos
+## Requirements
 
-- Python 3.10 o superior (recomendado 3.11+)
-- Entorno virtual (recomendado)
-- Dependencias Python:
+- Python 3.10 or newer (3.11+ recommended)
+- Virtual environment (recommended)
+- Python dependencies:
   - PySide6
   - PyMuPDF (`fitz`)
   - python-dotenv
@@ -70,7 +70,7 @@ AI-benchmark/
   - google-genai
   - matplotlib
 
-Instalacion sugerida:
+Suggested installation:
 
 ```bash
 python -m venv venv
@@ -78,70 +78,70 @@ venv\Scripts\activate
 pip install PySide6 PyMuPDF python-dotenv groq google-genai matplotlib
 ```
 
-## Configuracion de variables de entorno
+## Environment Variables
 
-Crea un archivo `.env` en la raiz del proyecto.
+Create a `.env` file in the project root.
 
-Variables soportadas:
+Supported variables:
 
-- `GROQ_API_KEY`: API key para modelos servidos por Groq.
-- `GEMINI_API_KEY`: API key para Gemini.
-- `MODEL_GPT` o `GPT`: identificador de modelo GPT (via Groq).
-- `MODEL_LLAMA` o `LLAMA`: identificador de modelo Llama (via Groq).
-- `MODEL_GEMINI` o `GEMINI_MODEL_NAME` o `GEMINI`: identificador de modelo Gemini.
+- `GROQ_API_KEY`: API key for Groq-served models.
+- `GEMINI_API_KEY`: API key for Gemini.
+- `MODEL_GPT` or `GPT`: GPT model identifier (via Groq).
+- `MODEL_LLAMA` or `LLAMA`: Llama model identifier (via Groq).
+- `MODEL_GEMINI` or `GEMINI_MODEL_NAME` or `GEMINI`: Gemini model identifier.
 
-Ejemplo:
+Example:
 
 ```env
-GROQ_API_KEY=tu_api_key_groq
-GEMINI_API_KEY=tu_api_key_gemini
+GROQ_API_KEY=your_groq_api_key
+GEMINI_API_KEY=your_gemini_api_key
 MODEL_GPT=openai/gpt-oss-20b
 MODEL_LLAMA=meta-llama/llama-3.3-70b-versatile
 MODEL_GEMINI=gemini-2.5-flash
 ```
 
-## Ejecucion de la aplicacion
+## Running the Application
 
-Desde la raiz del proyecto:
+From the project root:
 
 ```bash
 python main.py
 ```
 
-Flujo recomendado en la UI:
+Recommended UI workflow:
 
-1. Subir PDF en el panel izquierdo.
-2. Seleccionar modelo (GPT, Llama o Gemini).
-3. Iniciar test.
-4. Responder cada pregunta para recibir retroalimentacion inmediata.
-5. Avanzar hasta la ultima pregunta.
-6. Finalizar test para obtener retroalimentacion global.
+1. Upload a PDF in the left panel.
+2. Select a model (GPT, Llama, or Gemini).
+3. Start the test.
+4. Answer each question to receive immediate feedback.
+5. Move through all questions until the last one.
+6. Finish the test to receive global feedback.
 
-## Benchmark de modelos (sin PyQt)
+## Model Benchmark (No PyQt)
 
-El benchmark permite comparar modelos con un dataset de textos y producir reportes para decidir la mejor IA.
+The benchmark compares models on a text dataset and generates reports to help choose the best model.
 
-Ejecucion:
+Run:
 
 ```bash
 python metrics/benchmark_models.py --dataset metrics/sample_corpus.json --models gpt llama gemini
 ```
 
-Opciones utiles:
+Useful options:
 
-- `--dataset`: ruta a JSON de casos.
-- `--models`: lista de modelos a evaluar (`gpt llama gemini`).
-- `--output-dir`: carpeta base de salida.
+- `--dataset`: path to the JSON dataset.
+- `--models`: list of models to evaluate (`gpt llama gemini`).
+- `--output-dir`: base output directory.
 
-Metricas calculadas:
+Computed metrics:
 
-- `success_rate`: porcentaje de casos exitosos.
-- `avg_latency_sec`: latencia promedio por caso.
-- `avg_format_score`: cumplimiento de formato esperado.
-- `avg_grounding_score`: alineacion con el texto fuente.
-- `final_score`: score ponderado para ranking final.
+- `success_rate`: percentage of successful cases.
+- `avg_latency_sec`: average latency per case.
+- `avg_format_score`: adherence to expected question format.
+- `avg_grounding_score`: alignment with source text.
+- `final_score`: weighted score for final ranking.
 
-Salida del benchmark:
+Benchmark output:
 
 - `metrics/output/<timestamp>/raw_results.csv`
 - `metrics/output/<timestamp>/model_summary.csv`
@@ -150,39 +150,39 @@ Salida del benchmark:
 - `metrics/output/<timestamp>/charts/quality_scores.png`
 - `metrics/output/<timestamp>/charts/ranking.png`
 
-## Pruebas
+## Tests
 
-Ejecutar pruebas unitarias:
+Run unit tests:
 
 ```bash
 python -m unittest discover -s test -p "test*.py"
 ```
 
-Cobertura actual de pruebas:
+Current test coverage includes:
 
-- Construccion de prompts (incluye recorte de texto largo).
-- Parser de preguntas y opciones.
+- Prompt construction (including long-text truncation).
+- Question/options parsing.
 
-## Manejo de errores y validaciones
+## Error Handling and Validation
 
-- Validacion de texto PDF antes de iniciar test.
-- Validacion de modelo seleccionado antes de generar preguntas/feedback.
-- Mensajes de error claros cuando faltan API keys o dependencias.
-- Compatibilidad de variables de entorno con nombres antiguos y nuevos.
+- PDF text validation before starting a test.
+- Selected-model validation before question generation and feedback.
+- Clear error messages when API keys or dependencies are missing.
+- Backward-compatible environment-variable naming support.
 
-## Convenciones y notas tecnicas
+## Conventions and Technical Notes
 
-- `metrics/output/` esta ignorado por git para no versionar artefactos generados.
-- `.env` esta ignorado para proteger credenciales.
-- El panel de test usa ajuste de linea y scroll para textos largos.
+- `metrics/output/` is git-ignored to avoid versioning generated artifacts.
+- `.env` is git-ignored to protect credentials.
+- The test panel uses line wrapping and scrolling for long content.
 
-## Roadmap sugerido
+## Suggested Roadmap
 
-- Ejecutar feedback por pregunta en segundo plano para evitar bloqueo de UI.
-- Aumentar cobertura de pruebas para UI y modulo PDF.
-- Agregar exportacion de resultados del test del usuario (CSV/JSON).
-- Integrar CI para ejecutar tests en cada pull request.
+- Run per-question feedback in the background to avoid UI blocking.
+- Expand test coverage for UI and PDF modules.
+- Add user test-result export (CSV/JSON).
+- Add CI to run tests on every pull request.
 
-## Licencia
+## License
 
-Define aqui la licencia oficial del proyecto (por ejemplo MIT, Apache-2.0 o uso interno).
+Define the official project license here (for example MIT, Apache-2.0, or internal use).
